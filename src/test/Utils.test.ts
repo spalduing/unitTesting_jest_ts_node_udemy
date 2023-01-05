@@ -4,10 +4,12 @@ describe.only("Utils test suite", () => {
   beforeEach(() => {
     console.log("before each");
   });
+
   beforeAll(() => {
     console.log("before All");
   });
-  test.skip("first test", () => {
+
+  test.only("first test", () => {
     // It will going to skip this test when jest run the test suit.
     const result = Utils.toUpperCase("s");
     expect(result).toBe("S");
