@@ -1,9 +1,11 @@
-import * as Nedb from 'nedb';
+// import * as Nedb from 'nedb';
 import { UserCredentials } from '../Models/ServerModels';
+
+const Nedb = require('nedb');
 
 export class UserCredentialsDbAccess {
 
-    private nedb: Nedb;
+    private nedb: typeof Nedb;
 
     constructor(nedb = new Nedb('databases/UsersCredentials.db')) {
         this.nedb = nedb;

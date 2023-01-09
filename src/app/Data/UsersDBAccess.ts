@@ -1,9 +1,12 @@
-import * as Nedb from 'nedb';
+// import * as Nedb from 'nedb';
 import { User } from '../Models/UserModels';
+
+const Nedb = require('nedb');
+
 
 export class UsersDBAccess {
 
-    private nedb: Nedb;
+    private nedb: typeof Nedb;
 
     constructor(nedb = new Nedb('databases/Users.db')) {
         this.nedb = nedb;

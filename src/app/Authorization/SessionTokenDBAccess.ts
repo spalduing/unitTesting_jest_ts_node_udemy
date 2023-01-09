@@ -1,9 +1,11 @@
 import { SessionToken } from '../Models/ServerModels';
-import * as Nedb from 'nedb';
+// import * as Nedb from 'nedb';
+
+const Nedb = require('nedb');
 
 export class SessionTokenDBAccess {
 
-    private nedb: Nedb;
+    private nedb: typeof Nedb;
 
     constructor(nedb = new Nedb('databases/sessionToken.db')) {
         this.nedb = nedb;
