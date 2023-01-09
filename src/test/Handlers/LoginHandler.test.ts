@@ -20,9 +20,28 @@ describe("LoginHandler test suite", () => {
     );
   });
 
+  // Your test should be independent from one another, so it's a good idea to clear all mocks after each test.
+  afterEach(()=>{
+    jest.clearAllMocks();
+  })
+
   test("options request", async () => {
     requestMock.method = HTTP_METHODS.OPTIONS;
     await loginHandler.handleRequest();
     expect(responseMock.writeHead).toBeCalledWith(HTTP_CODES.OK);
   });
+
+  test('not handled http method', async () =>{
+    requestMock.method = 'someRandomMethod';
+    await loginHandler.handleRequest();
+
+    expect(responseMock.writeHead).not.toHaveBeenCalled();
+
+    // THE CODE BELLOW TEST THE SAME THING OF THE CODE_LINE ABOVE!
+    // MY APPROACH WAS TO CHECK FOR EVERY CASE OF THE SWITCH CASE IN handleRequest 
+    // TO NOT HAVE WRITTEN THE HTTP_CODES SPECIFIED IN EACH PRIVATE METHOD CALLED 
+    // BY THE FUNCTION.
+    expect(responseMock.writeHead).not.toHaveBeenCalledWith(HTTP_CODES.OK);
+    expect(responseMock.writeHead).not.toHaveBeenCalledWith(HTTP_CODES.CREATED);
+  })
 });
