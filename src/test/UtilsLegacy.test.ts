@@ -1,4 +1,4 @@
-import { Utils } from "../app/Utils";
+import { Utils } from "../app_legacy/Utils";
 
 describe.only("Utils test suite", () => {
   beforeEach(() => {
