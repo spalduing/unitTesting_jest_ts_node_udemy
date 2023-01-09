@@ -67,7 +67,7 @@ describe("LoginHandler test suite", () => {
     expect(responseMock.writeHead).not.toHaveBeenCalledWith(HTTP_CODES.CREATED);
   });
 
-  test.only("post request with valid login", async () => {
+  test("post request with valid login", async () => {
     requestMock.method = HTTP_METHODS.POST;
     getRequestBodyMock.mockReturnValueOnce({
       username: "someUser",
@@ -81,5 +81,31 @@ describe("LoginHandler test suite", () => {
     expect(responseMock.statusCode).toBe(HTTP_CODES.CREATED);
     expect(responseMock.writeHead).toBeCalledWith(HTTP_CODES.CREATED, { 'Content-Type': 'application/json' });
     expect(responseMock.write).toBeCalledWith(JSON.stringify(someSessionToken));
+  });
+
+  test("post request with invalid login", async () => {
+    requestMock.method = HTTP_METHODS.POST;
+    getRequestBodyMock.mockReturnValueOnce({
+      username: "someUser",
+      password: "password",
+    });
+
+    authorizerMock.generateToken.mockReturnValueOnce(null);
+
+    await loginHandler.handleRequest();
+    
+    expect(responseMock.statusCode).toBe(HTTP_CODES.NOT_fOUND);
+    expect(responseMock.write).toBeCalledWith('wrong username or password');
+  });
+  
+  test("post request with unexpected error", async () => {
+    requestMock.method = HTTP_METHODS.POST;
+    const unexpectedError = new Error('something went wrong!');
+    getRequestBodyMock.mockRejectedValueOnce(unexpectedError);
+
+    await loginHandler.handleRequest();
+    
+    expect(responseMock.statusCode).toBe(HTTP_CODES.INTERNAL_SERVER_ERROR);
+    expect(responseMock.write).toBeCalledWith('Internal error: ' + unexpectedError.message);
   });
 });
