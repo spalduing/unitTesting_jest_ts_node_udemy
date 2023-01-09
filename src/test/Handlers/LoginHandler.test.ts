@@ -1,5 +1,11 @@
 import { LoginHandler } from "../../app/Handlers/LoginHandler";
-import { HTTP_CODES, HTTP_METHODS } from "../../app/Models/ServerModels";
+import {
+  AccessRight,
+  HTTP_CODES,
+  HTTP_METHODS,
+  SessionToken,
+} from "../../app/Models/ServerModels";
+import { Utils } from "../../app/Utils/Utils";
 
 describe("LoginHandler test suite", () => {
   let loginHandler: LoginHandler;
@@ -9,8 +15,14 @@ describe("LoginHandler test suite", () => {
   };
   const responseMock = {
     writeHead: jest.fn(),
+    write: jest.fn(),
+    statusCode: 0
   };
-  const authorizerMock = {};
+  const authorizerMock = {
+    generateToken: jest.fn(),
+  };
+
+  const getRequestBodyMock = jest.fn();
 
   beforeEach(() => {
     loginHandler = new LoginHandler(
@@ -18,12 +30,22 @@ describe("LoginHandler test suite", () => {
       responseMock as any, // In production making an any type would be wrong, but for unit testing may be ok
       authorizerMock as any // In production making an any type would be wrong, but for unit testing may be ok
     );
+
+    Utils.getRequestBody = getRequestBodyMock;
   });
 
   // Your test should be independent from one another, so it's a good idea to clear all mocks after each test.
-  afterEach(()=>{
+  afterEach(() => {
     jest.clearAllMocks();
-  })
+  });
+
+  const someSessionToken: SessionToken = {
+    tokenId: "string",
+    userName: "string",
+    valid: true,
+    expirationTime: new Date(),
+    accessRights: [AccessRight.CREATE, AccessRight.READ],
+  };
 
   test("options request", async () => {
     requestMock.method = HTTP_METHODS.OPTIONS;
@@ -31,17 +53,33 @@ describe("LoginHandler test suite", () => {
     expect(responseMock.writeHead).toBeCalledWith(HTTP_CODES.OK);
   });
 
-  test('not handled http method', async () =>{
-    requestMock.method = 'someRandomMethod';
+  test("not handled http method", async () => {
+    requestMock.method = "someRandomMethod";
     await loginHandler.handleRequest();
 
     expect(responseMock.writeHead).not.toHaveBeenCalled();
 
     // THE CODE BELLOW TEST THE SAME THING OF THE CODE_LINE ABOVE!
-    // MY APPROACH WAS TO CHECK FOR EVERY CASE OF THE SWITCH CASE IN handleRequest 
-    // TO NOT HAVE WRITTEN THE HTTP_CODES SPECIFIED IN EACH PRIVATE METHOD CALLED 
+    // MY APPROACH WAS TO CHECK FOR EVERY CASE OF THE SWITCH CASE IN handleRequest
+    // TO NOT HAVE WRITTEN THE HTTP_CODES SPECIFIED IN EACH PRIVATE METHOD CALLED
     // BY THE FUNCTION.
     expect(responseMock.writeHead).not.toHaveBeenCalledWith(HTTP_CODES.OK);
     expect(responseMock.writeHead).not.toHaveBeenCalledWith(HTTP_CODES.CREATED);
-  })
+  });
+
+  test.only("post request with valid login", async () => {
+    requestMock.method = HTTP_METHODS.POST;
+    getRequestBodyMock.mockReturnValueOnce({
+      username: "someUser",
+      password: "password",
+    });
+
+    authorizerMock.generateToken.mockReturnValueOnce(someSessionToken);
+
+    await loginHandler.handleRequest();
+    
+    expect(responseMock.statusCode).toBe(HTTP_CODES.CREATED);
+    expect(responseMock.writeHead).toBeCalledWith(HTTP_CODES.CREATED, { 'Content-Type': 'application/json' });
+    expect(responseMock.write).toBeCalledWith(JSON.stringify(someSessionToken));
+  });
 });
